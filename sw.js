@@ -1,5 +1,5 @@
 /* Pulsplan Service Worker: macht die App offline nutzbar und installierbar */
-const VERSION = 'pulsplan-v1';
+const VERSION = 'pulsplan-v2';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -24,4 +24,13 @@ self.addEventListener('fetch', e => {
     const net = fetch(req).then(res => { if (res.ok) c.put(req, res.clone()); return res; }).catch(() => hit);
     return hit || net;
   })));
+});
+// Tipp auf eine Termin-Erinnerung öffnet den Kalender
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || './';
+  e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    const open = list.find(c => c.url.startsWith(url));
+    return open ? open.focus() : clients.openWindow(url);
+  }));
 });
